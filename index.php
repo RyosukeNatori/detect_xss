@@ -10,7 +10,7 @@
     }
 
     function echoHello($query){
-      echo '<div>JHello</div>';
+      echo '<div>Hello</div>';
       $two=substr($query, 2, 1);
     }
     ?>
@@ -23,7 +23,7 @@
 
     function echoHelloWorld($query){
       echoHello($query);
-      echo '<div>JHello World</div>';
+      echo '<div>Hello World</div>';
       $two=substr($query, 2, 1);
     }
     ?>
