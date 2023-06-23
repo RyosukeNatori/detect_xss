@@ -46,4 +46,4 @@ const setParent = (node) => {
 };
 setParent(parsedCode);
 
-console.log(parsedCode.children[1].body.children[0].expressions[0].right);
+console.log(parsedCode.children);
