@@ -12,13 +12,11 @@ const parser = new engine({
   },
 });
 
-const phpFile = fs.readFileSync('../index.php');
+const phpFile = fs.readFileSync(
+  '/home/ryosuke/project/php_and_html_parser/index.php'
+);
 
 const parsedCode = parser.parseCode(phpFile);
-
-const parsedEval = parser.parseEval('echo "Hello World";');
-
-const parsedToken = parser.tokenGetAll(phpFile);
 
 const setParent = (ast) => {
   const shouldSetParents = [
@@ -57,31 +55,45 @@ const buildScopeObject = (ast) => {
   const templateScope = {
     kind: '',
     parent: null,
-    children: [],
+    childrenScopes: [],
     variables: new Map(),
     functions: [],
   };
+  const templateFunction = {
+    kind: 'function',
+  };
+  console.log(ast.children[2].body.children);
 
   const scope = templateScope;
-  scope.kind = 'global';
 
-  for (const child of ast.children) {
-    switch (child.kind) {
-      case 'expressionstatement': {
-        if (scope.variables.has(child.expression.left.name)) {
-          scope.variables.get(child.expression.left.name).push({
-            ast: child.expression.left,
-            location: child.expression.left.loc,
-          });
-        } else {
-          scope.variables.set(child.expression.left.name, [
-            { ast: child.expression.left, location: child.expression.left.loc },
-          ]);
+  switch (ast.kind) {
+    case 'program':
+      {
+        scope.kind = 'global';
+        for (const child of ast.children) {
+          switch (child.kind) {
+            case 'expressionstatement': {
+              if (scope.variables.has(child.expression.left.name)) {
+                scope.variables.get(child.expression.left.name).push({
+                  ast: child.expression.left,
+                  location: child.expression.left.loc,
+                });
+              } else {
+                scope.variables.set(child.expression.left.name, [
+                  {
+                    ast: child.expression.left,
+                    location: child.expression.left.loc,
+                  },
+                ]);
+              }
+            }
+          }
         }
       }
-    }
+      return scope;
   }
-  return scope;
 };
+
 const scope = buildScopeObject(parsedCode);
-// console.log();
+
+// console.log(scope);
