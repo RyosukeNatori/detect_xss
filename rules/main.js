@@ -51,7 +51,8 @@ const setParent = (ast) => {
 };
 setParent(parsedCode);
 
-const buildScopeObject = (ast) => {
+let scope;
+const buildScopeObject = ({ ast, target, parent }) => {
   const templateScope = {
     kind: '',
     parent: null,
@@ -62,38 +63,47 @@ const buildScopeObject = (ast) => {
   const templateFunction = {
     kind: 'function',
   };
-  console.log(ast.children[2].body.children);
-
-  const scope = templateScope;
+  console.log(ast);
 
   switch (ast.kind) {
-    case 'program':
-      {
-        scope.kind = 'global';
-        for (const child of ast.children) {
-          switch (child.kind) {
-            case 'expressionstatement': {
-              if (scope.variables.has(child.expression.left.name)) {
-                scope.variables.get(child.expression.left.name).push({
+    case 'program': {
+      scope = templateScope;
+
+      scope.kind = 'global';
+      for (const child of ast.children) {
+        switch (child.kind) {
+          case 'expressionstatement': {
+            if (scope.variables.has(child.expression.left.name)) {
+              scope.variables.get(child.expression.left.name).push({
+                ast: child.expression.left,
+                location: child.expression.left.loc,
+              });
+            } else {
+              scope.variables.set(child.expression.left.name, [
+                {
                   ast: child.expression.left,
                   location: child.expression.left.loc,
-                });
-              } else {
-                scope.variables.set(child.expression.left.name, [
-                  {
-                    ast: child.expression.left,
-                    location: child.expression.left.loc,
-                  },
-                ]);
-              }
+                },
+              ]);
             }
+            break;
+          }
+          case 'if': {
+            console.log(child);
+            buildScopeObject({ ast: child, target: scope.childrenScopes });
+            break;
           }
         }
       }
-      return scope;
+      break;
+    }
+    case 'if': {
+      const ifScope = templateScope;
+    }
   }
+  return scope;
 };
 
-const scope = buildScopeObject(parsedCode);
+const hoge = buildScopeObject({ ast: parsedCode, target: '' });
 
-// console.log(scope);
+console.log(hoge);
