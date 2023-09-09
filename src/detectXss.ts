@@ -1,13 +1,9 @@
 import { buildScopeObject, getAst } from '../lib/main.js';
 
-export const detectXss = (filePath) => {
+export const detectXss = (filePath: string): void => {
   try {
-    // const ast = getAst(
-    //   '/home/ryosuke/project/php_and_html_parser/sample/easy.php'
-    // );
     const ast = getAst(filePath);
-    // console.log(ast);
-    const scope = buildScopeObject({ ast, target: '', parent: '' });
+    const scope = buildScopeObject({ ast });
     console.log(scope);
 
     let sink = { location: { startLine: 0, startColumn: 0 }, name: '' };
