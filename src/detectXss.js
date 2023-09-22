@@ -1,6 +1,7 @@
 import { buildScopeObject, getAst } from '../lib/main.js';
 
 export const detectXss = (filePath) => {
+  const results = [];
   try {
     // const ast = getAst(
     //   '/home/ryosuke/project/php_and_html_parser/sample/easy.php'
@@ -8,14 +9,20 @@ export const detectXss = (filePath) => {
     const ast = getAst(filePath);
     // console.log(ast);
     const scope = buildScopeObject({ ast, target: '', parent: '' });
-    console.log(scope);
+    console.log(filePath);
 
     let sink = { location: { startLine: 0, startColumn: 0 }, name: '' };
     let source = { location: { startLine: 0, startColumn: 0 }, name: '' };
 
     const report = () => {
-      console.log('source:', source.name, source.location);
-      console.log('sink:', sink.name, sink.location);
+      const result = {
+        source: `source: ${(source.name, source.location)}`,
+        sink: `sink: ${(sink.name, sink.location)}`,
+      };
+      console.log(result.source);
+      console.log(result.sink);
+      results.push(result);
+      return;
     };
 
     const findScope = ({ ast, scope }) => {
@@ -74,7 +81,6 @@ export const detectXss = (filePath) => {
               };
               source.name = ast.right.what.name;
               report();
-              return;
             }
           }
         }
@@ -112,7 +118,10 @@ export const detectXss = (filePath) => {
 
         if (sourceVariables.length > 0) {
           sourceVariables.forEach((sourceVariable) => {
-            checkSource({ ast: sourceVariable.ast.parent, scope: nowScope });
+            checkSource({
+              ast: sourceVariable.ast.parent,
+              scope: nowScope,
+            });
           });
         } else {
           console.log('No source variable');
@@ -192,6 +201,8 @@ export const detectXss = (filePath) => {
     findEcho({ ast, scope });
   } catch (e) {
     console.debug(e);
+  } finally {
+    return results;
   }
 };
 
