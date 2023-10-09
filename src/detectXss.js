@@ -3,13 +3,9 @@ import { buildScopeObject, getAst } from '../lib/main.js';
 export const detectXss = (filePath) => {
   const results = [];
   try {
-    // const ast = getAst(
-    //   '/home/ryosuke/project/php_and_html_parser/sample/easy.php'
-    // );
     const ast = getAst(filePath);
-    // console.log(ast);
+
     const scope = buildScopeObject({ ast, target: '', parent: '' });
-    console.log(filePath);
 
     let sink = { location: { startLine: 0, startColumn: 0 }, name: '' };
     let source = { location: { startLine: 0, startColumn: 0 }, name: '' };
@@ -206,4 +202,6 @@ export const detectXss = (filePath) => {
   }
 };
 
-detectXss('/home/ryosuke/project/php_and_html_parser/sample/easy.php');
+detectXss(
+  '/home/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__array-GET__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+);
