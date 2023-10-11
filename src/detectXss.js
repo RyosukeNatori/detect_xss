@@ -12,11 +12,15 @@ export const detectXss = (filePath) => {
 
     const report = () => {
       const result = {
-        source: `source: ${(source.name, source.location)}`,
-        sink: `sink: ${(sink.name, sink.location)}`,
+        source: source.name,
+        sourceLocation: source.location,
+        sink: sink.name,
+        sinkLocation: sink.location,
       };
       console.log(result.source);
+      console.log(result.sourceLocation);
       console.log(result.sink);
+      console.log(result.sinkLocation);
       results.push(result);
       return;
     };
@@ -77,6 +81,37 @@ export const detectXss = (filePath) => {
               };
               source.name = ast.right.what.name;
               report();
+            } else if (ast.right.offset.kind === 'number') {
+              if (
+                findScope({ ast: ast.right.what, scope }).variables.get(
+                  ast.right.what.name
+                )[0].values
+              ) {
+                checkSource({
+                  ast: findScope({ ast: ast.right.what, scope }).variables.get(
+                    ast.right.what.name
+                  )[0].values[ast.right.offset.value].parent,
+                  scope,
+                });
+              }
+            }
+          } else if (ast.right.kind === 'call') {
+            if (ast.right.arguments.length > 0) {
+              ast.right.arguments.forEach((argument) => {
+                const variableScope = findScope({ ast: argument, scope });
+                if (variableScope.variables.get(argument.name)) {
+                  variableScope.variables
+                    .get(argument.name)
+                    .filter((variable) => {
+                      return (
+                        argument !== variable.ast && ast.left !== variable.ast
+                      );
+                    })
+                    .forEach((variable) => {
+                      checkSource({ ast: variable.ast.parent, scope });
+                    });
+                }
+              });
             }
           }
         }
@@ -203,5 +238,5 @@ export const detectXss = (filePath) => {
 };
 
 detectXss(
-  '/home/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__array-GET__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__array-GET__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );
