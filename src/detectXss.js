@@ -238,5 +238,6 @@ export const detectXss = (filePath) => {
 };
 
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__array-GET__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__GET__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
 );
+// detectXss('/Users/ryosuke/project/php_and_html_parser/sample/easy.php');
