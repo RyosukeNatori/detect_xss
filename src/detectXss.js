@@ -7,6 +7,8 @@ export const detectXss = (filePath) => {
 
     const scope = buildScopeObject({ ast, target: '', parent: '' });
 
+    console.log(scope.childrenScopes);
+
     let sink = { location: { startLine: 0, startColumn: 0 }, name: '' };
     let source = { location: { startLine: 0, startColumn: 0 }, name: '' };
 
@@ -207,16 +209,18 @@ export const detectXss = (filePath) => {
             }
           }
         } else if (ast.body) {
-          for (let child of ast.body.children) {
-            if (child.kind === 'echo') {
-              echos.push(child);
-            } else if (
-              child.kind === 'if' ||
-              child.kind === 'while' ||
-              child.kind === 'for' ||
-              child.kind === 'function'
-            ) {
-              depthFirstSearch({ ast: child });
+          if (ast.body.kind === 'block') {
+            for (let child of ast.body.children) {
+              if (child.kind === 'echo') {
+                echos.push(child);
+              } else if (
+                child.kind === 'if' ||
+                child.kind === 'while' ||
+                child.kind === 'for' ||
+                child.kind === 'function'
+              ) {
+                depthFirstSearch({ ast: child });
+              }
             }
           }
         }
