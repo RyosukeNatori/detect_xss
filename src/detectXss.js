@@ -7,8 +7,6 @@ export const detectXss = (filePath) => {
 
     const scope = buildScopeObject({ ast, target: '', parent: '' });
 
-    console.log(scope.childrenScopes);
-
     let sink = { location: { startLine: 0, startColumn: 0 }, name: '' };
     let source = { location: { startLine: 0, startColumn: 0 }, name: '' };
 
@@ -124,7 +122,7 @@ export const detectXss = (filePath) => {
     const judgeXss = ({ ast, scope, echoVariables }) => {
       echoVariables.forEach((echoVariable) => {
         let echo = echoVariable;
-        while (echo.kind !== 'echo') {
+        while (echo.kind !== 'echo' && echo.kind !== 'call') {
           echo = echo.parent;
         }
         sink = {
@@ -186,6 +184,7 @@ export const detectXss = (filePath) => {
           }
         }
       }
+      console.log(echoVariables[0].parent.parent.parent);
       if (echoVariables.length > 0) {
         judgeXss({ ast, scope, echoVariables });
       } else {
@@ -193,8 +192,26 @@ export const detectXss = (filePath) => {
       }
     };
 
+    const findPrintVariable = ({ ast, prints, scope }) => {
+      const printVariables = [];
+
+      for (let print of prints) {
+        for (let argument of print.arguments) {
+          if (argument.kind === 'variable') {
+            printVariables.push(argument);
+          }
+        }
+      }
+      if (printVariables.length > 0) {
+        judgeXss({ ast, scope, echoVariables: printVariables });
+      } else {
+        console.log('No print variable');
+      }
+    };
+
     const findEcho = ({ ast, scope }) => {
       const echos = [];
+      const prints = [];
       const depthFirstSearch = ({ ast }) => {
         if (ast.children) {
           for (let child of ast.children) {
@@ -207,6 +224,14 @@ export const detectXss = (filePath) => {
               child.kind === 'function'
             ) {
               depthFirstSearch({ ast: child });
+            } else if (child.kind === 'expressionstatement') {
+              if (
+                child.expression.kind === 'call' &&
+                (child.expression.what.name === 'print' ||
+                  child.expression.what?.name === 'print_r')
+              ) {
+                prints.push(child.expression);
+              }
             }
           }
         } else if (ast.body) {
@@ -232,6 +257,11 @@ export const detectXss = (filePath) => {
       } else {
         console.log('No echo');
       }
+      if (prints.length > 0) {
+        findPrintVariable({ ast, prints, scope });
+      } else {
+        console.log('No print');
+      }
     };
 
     findEcho({ ast, scope });
@@ -242,7 +272,7 @@ export const detectXss = (filePath) => {
   }
 };
 
-detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__GET__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
-);
-// detectXss('/Users/ryosuke/project/php_and_html_parser/sample/easy.php');
+// detectXss(
+//   '/home/ryosuke/project/php_and_html_parser/sample/CWE_79__backticks__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
+// );
+detectXss('/home/ryosuke/project/php_and_html_parser/sample/easy.php');
