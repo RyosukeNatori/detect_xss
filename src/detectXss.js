@@ -75,7 +75,8 @@ export const detectXss = (filePath) => {
             if (
               (ast.right.what.kind === 'variable' &&
                 ast.right.what.name === '_GET') ||
-              ast.right.what.name === '_POST'
+              ast.right.what.name === '_POST' ||
+              ast.right.what.name === '_SESSION'
             ) {
               source.location = {
                 startLine: ast.right.loc.start.line,
