@@ -1,11 +1,11 @@
-<!-- 
+<!--
 Unsafe sample
 input : backticks interpretation, reading the file /tmp/tainted.txt
 Uses an email_filter via filter_var function
 File : unsafe, use of untrusted data in an attribute name
 -->
 
-<!--Copyright 2015 Bertrand STIVALET 
+<!--Copyright 2015 Bertrand STIVALET
 
 Permission is hereby granted, without written agreement or royalty fee, to
 
@@ -18,7 +18,7 @@ three paragraphs appear in all copies of this software.
 
 IN NO EVENT SHALL AUTHORS BE LIABLE TO ANY PARTY FOR DIRECT,
 
-INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE 
+INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
 
 USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF AUTHORS HAVE
 
@@ -41,20 +41,22 @@ MODIFICATIONS.-->
 
 <!DOCTYPE html>
 <html>
+
 <body>
-<?php
-$tainted = `cat /tmp/tainted.txt`;
+  <?php
+  $tainted = `cat /tmp/tainted.txt`;
 
-$sanitized = filter_var($tainted, FILTER_SANITIZE_EMAIL);
-if (filter_var($sanitized, FILTER_VALIDATE_EMAIL))
-  $tainted = $sanitized ;
-else
-  $tainted = "" ;
+  $sanitized = filter_var($tainted, FILTER_SANITIZE_EMAIL);
+  if (filter_var($sanitized, FILTER_VALIDATE_EMAIL))
+    $tainted = $sanitized;
+  else
+    $tainted = "";
 
-//flaw
-echo "<div ". $tainted ."= bob />" ;
-?>
-<h1>Hello World!</h1>
-</div>
+  //flaw
+  echo "<div " . $tainted . "= bob />";
+  ?>
+  <h1>Hello World!</h1>
+  </div>
 </body>
+
 </html>

@@ -1,4 +1,6 @@
+import e from 'express';
 import { buildScopeObject, getAst } from '../lib/main.js';
+import child_process from 'child_process';
 
 export const detectXss = (filePath) => {
   const results = [];
@@ -66,8 +68,39 @@ export const detectXss = (filePath) => {
                 checkSource({ ast: variable.ast.parent, scope });
               });
             } else {
-              console.log('No source variable');
+              console.debug('No source variable');
               return;
+            }
+          } else if (
+            ast.right.kind === 'encapsed' &&
+            ast.right.type === 'shell'
+          ) {
+            // console.log(ast.right.value[0]);
+            let execResult;
+            if (ast.right.value.length > 0) {
+              ast.right.value.forEach((value) => {
+                try {
+                  execResult = child_process
+                    .execSync(value.expression.value)
+                    .toString();
+                } catch (e) {
+                  execResult = e.output[2].toString();
+                }
+              });
+            } else {
+              execResult = '';
+            }
+
+            if (execResult === '' || execResult.includes('command not found')) {
+              console.log('hogehoge');
+              return;
+            } else {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+              };
+              source.name = ast.right.type;
+              report();
             }
           } else if (ast.right.kind === 'offsetlookup') {
             if (
@@ -156,7 +189,7 @@ export const detectXss = (filePath) => {
             });
           });
         } else {
-          console.log('No source variable');
+          console.debug('No source variable');
           return;
         }
       });
@@ -184,11 +217,10 @@ export const detectXss = (filePath) => {
           }
         }
       }
-      console.log(echoVariables[0].parent.parent.parent);
       if (echoVariables.length > 0) {
         judgeXss({ ast, scope, echoVariables });
       } else {
-        console.log('No echo variable');
+        console.debug('No echo variable');
       }
     };
 
@@ -205,7 +237,7 @@ export const detectXss = (filePath) => {
       if (printVariables.length > 0) {
         judgeXss({ ast, scope, echoVariables: printVariables });
       } else {
-        console.log('No print variable');
+        console.debug('No print variable');
       }
     };
 
@@ -255,12 +287,12 @@ export const detectXss = (filePath) => {
       if (echos.length > 0) {
         findEchoVariable({ ast, echos, scope });
       } else {
-        console.log('No echo');
+        console.debug('No echo');
       }
       if (prints.length > 0) {
         findPrintVariable({ ast, prints, scope });
       } else {
-        console.log('No print');
+        console.debug('No print');
       }
     };
 
@@ -272,7 +304,6 @@ export const detectXss = (filePath) => {
   }
 };
 
-// detectXss(
-//   '/home/ryosuke/project/php_and_html_parser/sample/CWE_79__backticks__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
-// );
-detectXss('/home/ryosuke/project/php_and_html_parser/sample/easy.php');
+detectXss(
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__backticks__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
+);
