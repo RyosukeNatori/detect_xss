@@ -1,8 +1,8 @@
 <!-- 
 Unsafe sample
-input : backticks interpretation, reading the file /tmp/tainted.txt
-Flushes content of $sanitized if the filter email_filter is not applied
-File : use of untrusted data in the body
+input : use exec to execute the script /tmp/tainted.php and store the output in $tainted
+Uses a magic_quotes_filter via filter_var function
+File : unsafe, use of untrusted data in an attribute name
 -->
 
 <!--Copyright 2015 Bertrand STIVALET 
@@ -41,19 +41,21 @@ MODIFICATIONS.-->
 
 <!DOCTYPE html>
 <html>
-<head/>
 <body>
 <?php
-$tainted = `cat /tmp/tainted.txt`;
+$script = "/tmp/tainted.php";
+exec($script, $result, $return);
 
-if (filter_var($sanitized, FILTER_VALIDATE_EMAIL))
+$tainted = $result[0];
+
+$sanitized = filter_var($tainted, FILTER_SANITIZE_MAGIC_QUOTES);
   $tainted = $sanitized ;
-else
-  $tainted = "" ;
+      
 
 //flaw
-echo $tainted ;
+echo "<div ". $tainted ."= bob />" ;
 ?>
 <h1>Hello World!</h1>
+</div>
 </body>
 </html>

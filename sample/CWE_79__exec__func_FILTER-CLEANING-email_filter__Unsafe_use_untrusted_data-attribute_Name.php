@@ -1,8 +1,8 @@
 <!-- 
 Unsafe sample
-input : reads the field UserData from the variable $_GET
-SANITIZE : use of rawurlencode
-File : unsafe, use of untrusted data in a property value in a span tag(CSS)
+input : use exec to execute the script /tmp/tainted.php and store the output in $tainted
+Uses an email_filter via filter_var function
+File : unsafe, use of untrusted data in an attribute name
 -->
 
 <!--Copyright 2015 Bertrand STIVALET 
@@ -41,16 +41,23 @@ MODIFICATIONS.-->
 
 <!DOCTYPE html>
 <html>
-<head/>
 <body>
 <?php
-$tainted = $_GET['UserData'];
+$script = "/tmp/tainted.php";
+exec($script, $result, $return);
 
-$tainted = rawurlencode($tainted);
+$tainted = $result[0];
+
+$sanitized = filter_var($tainted, FILTER_SANITIZE_EMAIL);
+if (filter_var($sanitized, FILTER_VALIDATE_EMAIL))
+  $tainted = $sanitized ;
+else
+  $tainted = "" ;
 
 //flaw
-echo "<span style=\"color :". checked_data ."\">Hey</span>" ;
+echo "<div ". $tainted ."= bob />" ;
 ?>
 <h1>Hello World!</h1>
+</div>
 </body>
 </html>

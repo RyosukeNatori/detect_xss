@@ -1,4 +1,3 @@
-import e from 'express';
 import { buildScopeObject, getAst } from '../lib/main.js';
 import child_process from 'child_process';
 
@@ -76,32 +75,31 @@ export const detectXss = (filePath) => {
             ast.right.type === 'shell'
           ) {
             // console.log(ast.right.value[0]);
-            let execResult;
-            if (ast.right.value.length > 0) {
-              ast.right.value.forEach((value) => {
-                try {
-                  execResult = child_process
-                    .execSync(value.expression.value)
-                    .toString();
-                } catch (e) {
-                  execResult = e.output[2].toString();
-                }
-              });
-            } else {
-              execResult = '';
-            }
+            // let execResult;
+            // if (ast.right.value.length > 0) {
+            //   ast.right.value.forEach((value) => {
+            //     try {
+            //       execResult = child_process
+            //         .execSync(value.expression.value)
+            //         .toString();
+            //     } catch (e) {
+            //       execResult = e.output[2].toString();
+            //     }
+            //   });
+            // } else {
+            //   execResult = '';
+            // }
 
-            if (execResult === '' || execResult.includes('command not found')) {
-              console.log('hogehoge');
-              return;
-            } else {
-              source.location = {
-                startLine: ast.right.loc.start.line,
-                startColumn: ast.right.loc.start.column,
-              };
-              source.name = ast.right.type;
-              report();
-            }
+            // if (execResult === '' || execResult.includes('command not found')) {
+            //   return;
+            // } else {
+            source.location = {
+              startLine: ast.right.loc.start.line,
+              startColumn: ast.right.loc.start.column,
+            };
+            source.name = ast.right.type;
+            report();
+            // }
           } else if (ast.right.kind === 'offsetlookup') {
             if (
               (ast.right.what.kind === 'variable' &&
@@ -305,5 +303,5 @@ export const detectXss = (filePath) => {
 };
 
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__backticks__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__proc_open__whitelist_using_array__Use_untrusted_data_script-window_SetInterval.php'
 );
