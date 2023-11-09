@@ -117,7 +117,7 @@ export const detectXss = (filePath) => {
               if (
                 findScope({ ast: ast.right.what, scope }).variables.get(
                   ast.right.what.name
-                )[0].values
+                )?.[0].values
               ) {
                 checkSource({
                   ast: findScope({ ast: ast.right.what, scope }).variables.get(
@@ -125,6 +125,20 @@ export const detectXss = (filePath) => {
                   )[0].values[ast.right.offset.value].parent,
                   scope,
                 });
+              } else {
+                if (
+                  scope.exec.length > 0 &&
+                  scope.exec.some((v) => {
+                    return v.name === ast.right.what.name;
+                  })
+                ) {
+                  source.location = {
+                    startLine: ast.right.loc.start.line,
+                    startColumn: ast.right.loc.start.column,
+                  };
+                  source.name = 'exec';
+                  report();
+                }
               }
             }
           } else if (ast.right.kind === 'call') {
@@ -303,5 +317,5 @@ export const detectXss = (filePath) => {
 };
 
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__proc_open__whitelist_using_array__Use_untrusted_data_script-window_SetInterval.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__exec__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
 );
