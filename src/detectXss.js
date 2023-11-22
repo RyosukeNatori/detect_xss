@@ -330,7 +330,8 @@ const detectXss = (filePath) => {
   }
 };
 
-module.exports = detectXss;
+exports.detectXss = detectXss;
+// module.exports = detectXss;
 
 detectXss(
   '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__exec__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
