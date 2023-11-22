@@ -1,3 +1,0 @@
-[submodule "reflected-and-stored-xss-test"]
-	path = reflected-and-stored-xss-test
-	url = git@github.com:RyosukeNatori/reflected-and-stored-xss-test.git
