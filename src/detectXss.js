@@ -1,7 +1,7 @@
-import { buildScopeObject, getAst } from '../lib/main.js';
-import child_process from 'child_process';
+const { buildScopeObject } = require('../lib/main.js');
+const { getAst } = require('../lib/main.js');
 
-export const detectXss = (filePath) => {
+const detectXss = (filePath) => {
   const results = [];
   try {
     const ast = getAst(filePath);
@@ -315,6 +315,8 @@ export const detectXss = (filePath) => {
     return results;
   }
 };
+
+module.exports = detectXss;
 
 detectXss(
   '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__exec__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
