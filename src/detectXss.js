@@ -8,8 +8,14 @@ const detectXss = (filePath) => {
 
     const scope = buildScopeObject({ ast, target: '', parent: '' });
 
-    let sink = { location: { startLine: 0, startColumn: 0 }, name: '' };
-    let source = { location: { startLine: 0, startColumn: 0 }, name: '' };
+    let sink = {
+      location: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+      name: '',
+    };
+    let source = {
+      location: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
+      name: '',
+    };
 
     const report = () => {
       const result = {
@@ -96,6 +102,8 @@ const detectXss = (filePath) => {
             source.location = {
               startLine: ast.right.loc.start.line,
               startColumn: ast.right.loc.start.column,
+              endLine: ast.right.loc.end.line,
+              endColumn: ast.right.loc.end.column,
             };
             source.name = ast.right.type;
             report();
@@ -110,6 +118,8 @@ const detectXss = (filePath) => {
               source.location = {
                 startLine: ast.right.loc.start.line,
                 startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
               };
               source.name = ast.right.what.name;
               report();
@@ -135,6 +145,8 @@ const detectXss = (filePath) => {
                   source.location = {
                     startLine: ast.right.loc.start.line,
                     startColumn: ast.right.loc.start.column,
+                    endLine: ast.right.loc.end.line,
+                    endColumn: ast.right.loc.end.column,
                   };
                   source.name = 'exec';
                   report();
@@ -174,6 +186,8 @@ const detectXss = (filePath) => {
           location: {
             startLine: echo.loc.start.line,
             startColumn: echo.loc.start.column,
+            endLine: echo.loc.end.line,
+            endColumn: echo.loc.end.column,
           },
           name: echoVariable.name,
         };
