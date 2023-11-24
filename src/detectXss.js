@@ -154,7 +154,28 @@ const detectXss = (filePath) => {
               }
             }
           } else if (ast.right.kind === 'call') {
+            if (ast.right.what.name === 'shell_exec') {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
+              };
+              source.name = 'shell_exec';
+              report();
+            } else if (ast.right.what.name === 'system') {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
+              };
+              source.name = 'system';
+              report();
+            }
             if (ast.right.arguments.length > 0) {
+              //   return;
+              // }
               ast.right.arguments.forEach((argument) => {
                 const variableScope = findScope({ ast: argument, scope });
                 if (variableScope.variables.get(argument.name)) {
@@ -333,6 +354,9 @@ const detectXss = (filePath) => {
 exports.detectXss = detectXss;
 // module.exports = detectXss;
 
+// detectXss(
+//   '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__shell_exec__func_addslashes__Unsafe_use_untrusted_data-comment.php'
+// );
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__exec__func_FILTER-CLEANING-email_filter__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__array-GET__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );
