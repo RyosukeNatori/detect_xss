@@ -1,4 +1,6 @@
+// eslint-disable-next-line no-undef
 const { buildScopeObject } = require('../lib/main.js');
+// eslint-disable-next-line no-undef
 const { getAst } = require('../lib/main.js');
 
 const detectXss = (filePath) => {
@@ -24,10 +26,10 @@ const detectXss = (filePath) => {
         sink: sink.name,
         sinkLocation: sink.location,
       };
-      console.log(result.source);
-      console.log(result.sourceLocation);
-      console.log(result.sink);
-      console.log(result.sinkLocation);
+      // console.log(result.source);
+      // console.log(result.sourceLocation);
+      // console.log(result.sink);
+      // console.log(result.sinkLocation);
       results.push(result);
       return;
     };
@@ -195,12 +197,14 @@ const detectXss = (filePath) => {
             if (ast.right.what.kind === 'propertylookup') {
               const className =
                 scope.class.dictionary[ast.right.what.what.name];
+
               if (scope.class[className]?.callStack) {
                 const index = scope.class[className].callStack.findIndex(
                   (element) => {
                     return element === ast.right.what;
                   }
                 );
+
                 const classScope = {
                   variables: new Map(),
                   method: new Map(),
@@ -224,6 +228,7 @@ const detectXss = (filePath) => {
                     }
                   }
                 });
+                let resultValue;
                 for (let i = 0; i <= index; i++) {
                   const callExpresson = scope.class[className].callStack[i];
                   switch (callExpresson.kind) {
@@ -264,19 +269,33 @@ const detectXss = (filePath) => {
                                             ).value = classScope.variables.get(
                                               element.expression.right.offset
                                                 .name
-                                            );
+                                            ).value;
                                           }
-                                          console.log(
-                                            classScope.variables.get(
-                                              element.expression.right.offset
-                                                .name
-                                            ).value
-                                          );
                                         }
-
                                         break;
                                       }
                                     }
+                                    break;
+                                  }
+                                }
+                                break;
+                              }
+                              case 'return': {
+                                switch (element.expr.kind) {
+                                  case 'propertylookup': {
+                                    if (
+                                      classScope.variables.get(
+                                        element.expr.offset.name
+                                      )
+                                    ) {
+                                      resultValue = classScope.variables.get(
+                                        element.expr.offset.name
+                                      ).value;
+                                    }
+                                    break;
+                                  }
+                                  default: {
+                                    resultValue = element.expr;
                                     break;
                                   }
                                 }
@@ -326,6 +345,13 @@ const detectXss = (filePath) => {
                     }
                   }
                 }
+                if (resultValue) {
+                  ast.right = resultValue;
+                  checkSource({ ast, scope });
+                } else {
+                  console.debug('No source variable');
+                  return;
+                }
               }
             }
           }
@@ -333,7 +359,7 @@ const detectXss = (filePath) => {
       }
     };
 
-    const judgeXss = ({ ast, scope, echoVariables }) => {
+    const judgeXss = ({ scope, echoVariables }) => {
       echoVariables.forEach((echoVariable) => {
         let echo = echoVariable;
         while (echo.kind !== 'echo' && echo.kind !== 'call') {
@@ -351,6 +377,7 @@ const detectXss = (filePath) => {
         const minimumScope = findScope({ ast: echoVariable, scope });
         let nowScope = minimumScope;
         const sourceVariables = [];
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           if (nowScope.variables.get(echoVariable.name)) {
             nowScope.variables.get(echoVariable.name).forEach((variable) => {
@@ -483,10 +510,12 @@ const detectXss = (filePath) => {
   } catch (e) {
     console.debug(e);
   } finally {
+    // eslint-disable-next-line no-unsafe-finally
     return results;
   }
 };
 
+// eslint-disable-next-line no-undef
 exports.detectXss = detectXss;
 // module.exports = detectXss;
 
@@ -494,5 +523,5 @@ exports.detectXss = detectXss;
 //   '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__shell_exec__func_addslashes__Unsafe_use_untrusted_data-comment.php'
 // );
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__object-classicGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/home/ryosuke/project/php_and_html_parser/sample/CWE_79__object-directGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );
