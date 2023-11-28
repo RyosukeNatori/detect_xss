@@ -1,11 +1,11 @@
-<!-- 
+<!--
 Unsafe sample
-input : use exec to execute the script /tmp/tainted.php and store the output in $tainted
-Uses a number_float_filter via filter_var function
+input : get the field userData from the variable $_GET via an object
+sanitize : use of the function addslashes
 File : unsafe, use of untrusted data in an attribute name
 -->
 
-<!--Copyright 2015 Bertrand STIVALET 
+<!--Copyright 2015 Bertrand STIVALET
 
 Permission is hereby granted, without written agreement or royalty fee, to
 
@@ -18,7 +18,7 @@ three paragraphs appear in all copies of this software.
 
 IN NO EVENT SHALL AUTHORS BE LIABLE TO ANY PARTY FOR DIRECT,
 
-INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE 
+INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
 
 USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF AUTHORS HAVE
 
@@ -43,16 +43,28 @@ MODIFICATIONS.-->
 <html>
 <body>
 <?php
-$script = "/tmp/tainted.php";
-exec($script, $result, $return);
+class Input{
+  private $input;
 
-$tainted = $result[0];
+  public function getInput(){
+    return $this->input;
+  }
 
-$sanitized = filter_var($tainted, FILTER_SANITIZE_NUMBER_FLOAT);
-if (filter_var($sanitized, FILTER_VALIDATE_FLOAT))
-  $tainted = $sanitized ;
-else
-  $tainted = "" ;
+  public function setInput(){
+    $this->input = $this->input;
+  }
+
+  public  function __construct(){
+   $this->input = $_GET['UserData'] ;
+  }
+}
+$temp = new Input();
+
+$temp->setInput();
+
+$tainted =  $temp->getInput();
+
+$tainted = addslashes($tainted);
 
 //flaw
 echo "<div ". $tainted ."= bob />" ;

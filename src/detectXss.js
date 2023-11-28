@@ -192,6 +192,142 @@ const detectXss = (filePath) => {
                 }
               });
             }
+            if (ast.right.what.kind === 'propertylookup') {
+              const className =
+                scope.class.dictionary[ast.right.what.what.name];
+              if (scope.class[className]?.callStack) {
+                const index = scope.class[className].callStack.findIndex(
+                  (element) => {
+                    return element === ast.right.what;
+                  }
+                );
+                const classScope = {
+                  variables: new Map(),
+                  method: new Map(),
+                };
+                scope.class[className].body.forEach((element) => {
+                  switch (element.kind) {
+                    case 'propertystatement': {
+                      element.properties.forEach((property) => {
+                        classScope.variables.set(property.name.name, {
+                          ast: property.name,
+                          value: null,
+                        });
+                      });
+                      break;
+                    }
+                    case 'method': {
+                      classScope.method.set(element.name.name, {
+                        ast: element.body,
+                      });
+                      break;
+                    }
+                  }
+                });
+                for (let i = 0; i <= index; i++) {
+                  const callExpresson = scope.class[className].callStack[i];
+                  switch (callExpresson.kind) {
+                    case 'propertylookup': {
+                      if (classScope.method.get(callExpresson.offset.name)) {
+                        classScope.method
+                          .get(callExpresson.offset.name)
+                          .ast.children.forEach((element) => {
+                            switch (element.kind) {
+                              case 'expressionstatement': {
+                                switch (element.expression.kind) {
+                                  case 'assign': {
+                                    switch (element.expression.left.kind) {
+                                      case 'variable': {
+                                        break;
+                                      }
+                                      case 'propertylookup': {
+                                        if (
+                                          classScope.variables.get(
+                                            element.expression.left.offset.name
+                                          )
+                                        ) {
+                                          if (
+                                            element.expression.right.kind ===
+                                            'variable'
+                                          ) {
+                                            classScope.variables.get(
+                                              element.expression.left.offset
+                                                .name
+                                            ).value = element.expression.right;
+                                          } else if (
+                                            element.expression.right.kind ===
+                                            'propertylookup'
+                                          ) {
+                                            classScope.variables.get(
+                                              element.expression.left.offset
+                                                .name
+                                            ).value = classScope.variables.get(
+                                              element.expression.right.offset
+                                                .name
+                                            );
+                                          }
+                                          console.log(
+                                            classScope.variables.get(
+                                              element.expression.right.offset
+                                                .name
+                                            ).value
+                                          );
+                                        }
+
+                                        break;
+                                      }
+                                    }
+                                    break;
+                                  }
+                                }
+                                break;
+                              }
+                            }
+                          });
+                      }
+                      break;
+                    }
+                    case 'new': {
+                      if (classScope.method.get('__construct')) {
+                        classScope.method
+                          .get('__construct')
+                          .ast.children.forEach((element) => {
+                            switch (element.kind) {
+                              case 'expressionstatement': {
+                                switch (element.expression.kind) {
+                                  case 'assign': {
+                                    switch (element.expression.left.kind) {
+                                      case 'variable': {
+                                        break;
+                                      }
+                                      case 'propertylookup': {
+                                        if (
+                                          classScope.variables.get(
+                                            element.expression.left.offset.name
+                                          )
+                                        ) {
+                                          classScope.variables.get(
+                                            element.expression.left.offset.name
+                                          ).value = element.expression.right;
+                                        }
+                                        break;
+                                      }
+                                    }
+                                    // if(classScope.variables.get())
+                                    break;
+                                  }
+                                }
+                                break;
+                              }
+                            }
+                          });
+                      }
+                      break;
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -358,5 +494,5 @@ exports.detectXss = detectXss;
 //   '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__shell_exec__func_addslashes__Unsafe_use_untrusted_data-comment.php'
 // );
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__array-GET__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__object-classicGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );

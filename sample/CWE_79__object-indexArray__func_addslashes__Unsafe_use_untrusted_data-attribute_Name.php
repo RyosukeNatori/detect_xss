@@ -1,8 +1,8 @@
 <!-- 
 Unsafe sample
-input : use exec to execute the script /tmp/tainted.php and store the output in $tainted
-Uses a full_special_chars_filter via filter_var function
-File : unsafe, use of untrusted data in a script
+input : get the field userData from the variable $_GET via an object, which store it in a array
+sanitize : use of the function addslashes
+File : unsafe, use of untrusted data in an attribute name
 -->
 
 <!--Copyright 2015 Bertrand STIVALET 
@@ -41,24 +41,31 @@ MODIFICATIONS.-->
 
 <!DOCTYPE html>
 <html>
-<head>
-<script>
+<body>
 <?php
-$script = "/tmp/tainted.php";
-exec($script, $result, $return);
+class Input{
+  private $input;
 
-$tainted = $result[0];
+  public function getInput(){
+    return $this->input['realOne'];
+  }
 
-$sanitized = filter_var($tainted, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-  $tainted = $sanitized ;
-     
+  public  function __construct(){
+    $this->input = array();
+    $this->input['test']= 'safe' ;
+    $this->input['realOne']= $_GET['UserData'] ;
+    $this->input['trap']= 'safe' ;
+  }
+}
+$temp = new Input();
+$tainted =  $temp->getInput();
+
+$tainted = addslashes($tainted);
 
 //flaw
-echo $tainted ;
+echo "<div ". $tainted ."= bob />" ;
 ?>
-</script>
-</head>
-<body onload="xss()">
 <h1>Hello World!</h1>
+</div>
 </body>
 </html>
