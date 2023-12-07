@@ -54,7 +54,6 @@ $tainted =  $temp->getInput();
 
 $tainted = addslashes($tainted);
 
-//flaw
 echo "<div ". $tainted ."= bob />" ;
 ?>
 <h1>Hello World!</h1>

@@ -523,5 +523,5 @@ exports.detectXss = detectXss;
 //   '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__shell_exec__func_addslashes__Unsafe_use_untrusted_data-comment.php'
 // );
 detectXss(
-  '/home/ryosuke/project/php_and_html_parser/sample/CWE_79__object-directGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__object-directGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );
