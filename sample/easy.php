@@ -1,14 +1,8 @@
 <html>
 <body>
 <?php
-  $fuga=2;
-  if(true){
-    if(true){
-      echo $fuga . "<br>";
-      $hoge=1;
-    }
-  }else{
-    $fuga=3;
+  if(($hoge=1)==true){
+    $hoge=$_GET['hoge'];
   }
   echo $hoge . "<br>";
 ?>

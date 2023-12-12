@@ -7,6 +7,7 @@ const detectXss = (filePath) => {
   const results = [];
   try {
     const ast = getAst(filePath);
+    console.log(ast.children[1]);
 
     const scope = buildScopeObject({ ast, target: '', parent: '' });
     console.log(scope);
@@ -398,6 +399,7 @@ const detectXss = (filePath) => {
               ast: sourceVariable.ast.parent,
               scope: nowScope,
             });
+            console.log(sourceVariables[1]);
           });
         } else {
           console.debug('No source variable');
