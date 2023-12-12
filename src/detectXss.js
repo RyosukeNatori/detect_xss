@@ -184,6 +184,15 @@ const detectXss = (filePath) => {
               };
               source.name = 'fgets';
               report();
+            } else if (ast.right.what.name === 'fread') {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
+              };
+              source.name = 'fread';
+              report();
             }
             if (ast.right.arguments.length > 0) {
               //   return;
