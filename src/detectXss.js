@@ -68,13 +68,13 @@ const detectXss = (filePath) => {
     };
 
     const checkSource = ({ ast, scope }) => {
-      if (stack.includes(ast)) {
-        return;
-      } else {
-        stack.push(ast);
-      }
       switch (ast.kind) {
         case 'assign': {
+          if (stack.includes(ast.right)) {
+            return;
+          } else {
+            stack.push(ast.right);
+          }
           if (ast.right.kind === 'variable') {
             if (scope.variables.get(ast.right.name)) {
               //いずれここは上のスコープまで見れるようにする
@@ -421,12 +421,12 @@ const detectXss = (filePath) => {
 
         if (sourceVariables.length > 0) {
           sourceVariables.forEach((sourceVariable) => {
-            if (!stack.includes(sourceVariable.ast.parent)) {
-              checkSource({
-                ast: sourceVariable.ast.parent,
-                scope: nowScope,
-              });
-            }
+            // if (!stack.includes(sourceVariable.ast.parent)) {
+            checkSource({
+              ast: sourceVariable.ast.parent,
+              scope: nowScope,
+            });
+            // }
           });
         } else {
           console.debug('No source variable');
@@ -550,5 +550,5 @@ exports.detectXss = detectXss;
 // module.exports = detectXss;
 
 detectXss(
-  '/home/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/stored/CWE_79__fopen__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/home/ryosuke/project/php_and_html_parser/sample/CWE_79__object-classicGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );
