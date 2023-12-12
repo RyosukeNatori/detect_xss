@@ -7,10 +7,9 @@ const detectXss = (filePath) => {
   const results = [];
   try {
     const ast = getAst(filePath);
-    console.log(ast.children[1]);
+    // console.log(ast.children[2].body.children[0].test.left);
 
     const scope = buildScopeObject({ ast, target: '', parent: '' });
-    console.log(scope);
 
     let sink = {
       location: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
@@ -175,6 +174,15 @@ const detectXss = (filePath) => {
                 endColumn: ast.right.loc.end.column,
               };
               source.name = 'system';
+              report();
+            } else if (ast.right.what.name === 'fgets') {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
+              };
+              source.name = 'fgets';
               report();
             }
             if (ast.right.arguments.length > 0) {
@@ -399,7 +407,6 @@ const detectXss = (filePath) => {
               ast: sourceVariable.ast.parent,
               scope: nowScope,
             });
-            console.log(sourceVariables[1]);
           });
         } else {
           console.debug('No source variable');
@@ -522,7 +529,6 @@ const detectXss = (filePath) => {
 exports.detectXss = detectXss;
 // module.exports = detectXss;
 
-// detectXss(
-//   '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__shell_exec__func_addslashes__Unsafe_use_untrusted_data-comment.php'
-// );
-detectXss('/Users/ryosuke/project/php_and_html_parser/sample/easy.php');
+detectXss(
+  '/home/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/stored/CWE_79__fopen__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+);
