@@ -9,6 +9,7 @@ const detectXss = (filePath) => {
     const ast = getAst(filePath);
 
     const scope = buildScopeObject({ ast, target: '', parent: '' });
+    console.log(scope);
 
     let sink = {
       location: { startLine: 0, startColumn: 0, endLine: 0, endColumn: 0 },
@@ -522,6 +523,4 @@ exports.detectXss = detectXss;
 // detectXss(
 //   '/Users/ryosuke/project/php_and_html_parser/reflected-and-stored-xss-test/samples/reflected/CWE_79__shell_exec__func_addslashes__Unsafe_use_untrusted_data-comment.php'
 // );
-detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__object-directGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
-);
+detectXss('/Users/ryosuke/project/php_and_html_parser/sample/easy.php');

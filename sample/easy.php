@@ -1,8 +1,16 @@
 <html>
-  <body>
-    <?php
-    $text = $_GET['UserData'];
-    echo '<div>' . $text . '</div>';
-    ?>
-  </body>
+<body>
+<?php
+  $fuga=2;
+  if(true){
+    if(true){
+      echo $fuga . "<br>";
+      $hoge=1;
+    }
+  }else{
+    $fuga=3;
+  }
+  echo $hoge . "<br>";
+?>
+</body>
 </html>
