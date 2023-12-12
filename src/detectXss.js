@@ -5,6 +5,7 @@ const { getAst } = require('../lib/main.js');
 
 const detectXss = (filePath) => {
   const results = [];
+  const stack = [];
   try {
     const ast = getAst(filePath);
     // console.log(ast.children[2].body.children[0].test.left);
@@ -67,6 +68,11 @@ const detectXss = (filePath) => {
     };
 
     const checkSource = ({ ast, scope }) => {
+      if (stack.includes(ast)) {
+        return;
+      } else {
+        stack.push(ast);
+      }
       switch (ast.kind) {
         case 'assign': {
           if (ast.right.kind === 'variable') {
@@ -133,9 +139,12 @@ const detectXss = (filePath) => {
                 )?.[0].values
               ) {
                 checkSource({
-                  ast: findScope({ ast: ast.right.what, scope }).variables.get(
-                    ast.right.what.name
-                  )[0].values[ast.right.offset.value].parent,
+                  ast: findScope({
+                    ast: ast.right.what,
+                    scope,
+                  }).variables.get(ast.right.what.name)[0].values[
+                    ast.right.offset.value
+                  ].parent,
                   scope,
                 });
               } else {
@@ -412,10 +421,12 @@ const detectXss = (filePath) => {
 
         if (sourceVariables.length > 0) {
           sourceVariables.forEach((sourceVariable) => {
-            checkSource({
-              ast: sourceVariable.ast.parent,
-              scope: nowScope,
-            });
+            if (!stack.includes(sourceVariable.ast.parent)) {
+              checkSource({
+                ast: sourceVariable.ast.parent,
+                scope: nowScope,
+              });
+            }
           });
         } else {
           console.debug('No source variable');
