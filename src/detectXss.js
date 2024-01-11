@@ -26,10 +26,10 @@ const detectXss = (filePath) => {
         sink: sink.name,
         sinkLocation: sink.location,
       };
-      // console.log(result.source);
-      // console.log(result.sourceLocation);
-      // console.log(result.sink);
-      // console.log(result.sinkLocation);
+      console.log(result.source);
+      console.log(result.sourceLocation);
+      console.log(result.sink);
+      console.log(result.sinkLocation);
       results.push(result);
       return;
     };
@@ -178,6 +178,29 @@ const detectXss = (filePath) => {
                   report();
                 }
               }
+            } else if (ast.right.offset.kind === 'string') {
+              if (
+                findScope({ ast: ast.right.what, scope }).variables.get(
+                  ast.right?.what?.offset?.name
+                )?.value
+              ) {
+                const values = findScope({
+                  ast: ast.right.what,
+                  scope,
+                })
+                  .variables.get(ast.right?.what?.offset?.name)
+                  ?.value.filter((elm) => {
+                    return elm.key === ast.right.offset.value;
+                  });
+
+                if (values.length > 0) {
+                  ast.right = values.at(-1).ast;
+                  checkSource({
+                    ast: ast,
+                    scope,
+                  });
+                }
+              }
             }
           } else if (ast.right.kind === 'call') {
             if (ast.right.what.name === 'shell_exec') {
@@ -283,7 +306,8 @@ const detectXss = (filePath) => {
                               case 'offsetlookup': {
                                 if (
                                   child.expression.left.what.kind ===
-                                  'propertylookup'
+                                    'propertylookup' &&
+                                  child.expression.left.offset.kind === 'number'
                                 ) {
                                   if (child.expression.left.what.offset.name) {
                                     if (
@@ -300,6 +324,38 @@ const detectXss = (filePath) => {
                                       classScope.variables.get(
                                         child.expression.left.what.offset.name
                                       ).value = [child.expression.right];
+                                    }
+                                  }
+                                } else if (
+                                  child.expression.left.what.kind ===
+                                    'propertylookup' &&
+                                  child.expression.left.offset.kind === 'string'
+                                ) {
+                                  if (child.expression.left.what.offset.name) {
+                                    if (
+                                      classScope.variables.get(
+                                        child.expression.left.what.offset.name
+                                      ).value?.[0]
+                                    ) {
+                                      classScope.variables
+                                        .get(
+                                          child.expression.left.what.offset.name
+                                        )
+                                        .value.push({
+                                          key: child.expression.left.offset
+                                            .value,
+                                          ast: child.expression.right,
+                                        });
+                                    } else {
+                                      classScope.variables.get(
+                                        child.expression.left.what.offset.name
+                                      ).value = [
+                                        {
+                                          key: child.expression.left.offset
+                                            .value,
+                                          ast: child.expression.right,
+                                        },
+                                      ];
                                     }
                                   }
                                 }
@@ -610,5 +666,5 @@ exports.detectXss = detectXss;
 // module.exports = detectXss;
 
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__exec__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__object-indexArray__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );
