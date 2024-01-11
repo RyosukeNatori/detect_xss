@@ -8,8 +8,6 @@ const detectXss = (filePath) => {
   const stack = [];
   try {
     const ast = getAst(filePath);
-    // console.log(ast.children[2].body.children[0].test.left);
-
     const scope = buildScopeObject({ ast, target: '', parent: '' });
 
     let sink = {
@@ -64,6 +62,7 @@ const detectXss = (filePath) => {
         }
       };
       findMinimumScope({ scope });
+      // console.log(minimumScope);
       return minimumScope;
     };
 
@@ -145,6 +144,21 @@ const detectXss = (filePath) => {
                   }).variables.get(ast.right.what.name)[0].values[
                     ast.right.offset.value
                   ].parent,
+                  scope,
+                });
+              } else if (
+                findScope({ ast: ast.right.what, scope }).variables.get(
+                  ast.right?.what?.offset?.name
+                )?.value
+              ) {
+                ast.right = findScope({
+                  ast: ast.right.what,
+                  scope,
+                }).variables.get(ast.right.what.offset.name).value[
+                  ast.right.offset.value
+                ];
+                checkSource({
+                  ast: ast,
                   scope,
                 });
               } else {
@@ -232,10 +246,17 @@ const detectXss = (filePath) => {
                     return element === ast.right.what;
                   }
                 );
-
                 const classScope = {
+                  kind: 'class',
+                  parent: scope,
                   variables: new Map(),
                   method: new Map(),
+                  location: {
+                    startLine: scope.class[className].loc.start.line,
+                    endLine: scope.class[className].loc.end.line,
+                  },
+                  childrenScopes: [],
+                  functions: [],
                 };
                 scope.class[className].body.forEach((element) => {
                   switch (element.kind) {
@@ -252,10 +273,47 @@ const detectXss = (filePath) => {
                       classScope.method.set(element.name.name, {
                         ast: element.body,
                       });
+                      if (element.body?.kind === 'block') {
+                        element.body.children.forEach((child) => {
+                          if (child.expression?.kind === 'assign') {
+                            switch (child.expression.left.kind) {
+                              case 'propertylookup': {
+                                break;
+                              }
+                              case 'offsetlookup': {
+                                if (
+                                  child.expression.left.what.kind ===
+                                  'propertylookup'
+                                ) {
+                                  if (child.expression.left.what.offset.name) {
+                                    if (
+                                      classScope.variables.get(
+                                        child.expression.left.what.offset.name
+                                      ).value?.[0]
+                                    ) {
+                                      classScope.variables
+                                        .get(
+                                          child.expression.left.what.offset.name
+                                        )
+                                        .value.push(child.expression.right);
+                                    } else {
+                                      classScope.variables.get(
+                                        child.expression.left.what.offset.name
+                                      ).value = [child.expression.right];
+                                    }
+                                  }
+                                }
+                                break;
+                              }
+                            }
+                          }
+                        });
+                      }
                       break;
                     }
                   }
                 });
+                scope.childrenScopes.push(classScope);
                 let resultValue;
                 for (let i = 0; i <= index; i++) {
                   const callExpresson = scope.class[className].callStack[i];
@@ -351,7 +409,9 @@ const detectXss = (filePath) => {
                                         if (
                                           classScope.variables.get(
                                             element.expression.left.offset.name
-                                          )
+                                          ) &&
+                                          element.expression.right.kind !==
+                                            'array'
                                         ) {
                                           classScope.variables.get(
                                             element.expression.left.offset.name
@@ -550,5 +610,5 @@ exports.detectXss = detectXss;
 // module.exports = detectXss;
 
 detectXss(
-  '/home/ryosuke/project/php_and_html_parser/sample/CWE_79__object-classicGet__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__exec__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );

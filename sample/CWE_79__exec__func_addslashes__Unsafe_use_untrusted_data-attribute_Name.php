@@ -1,11 +1,11 @@
-<!--
+<!-- 
 Unsafe sample
-input : get the field userData from the variable $_GET via an object
+input : use exec to execute the script /tmp/tainted.php and store the output in $tainted
 sanitize : use of the function addslashes
 File : unsafe, use of untrusted data in an attribute name
 -->
 
-<!--Copyright 2015 Bertrand STIVALET
+<!--Copyright 2015 Bertrand STIVALET 
 
 Permission is hereby granted, without written agreement or royalty fee, to
 
@@ -18,7 +18,7 @@ three paragraphs appear in all copies of this software.
 
 IN NO EVENT SHALL AUTHORS BE LIABLE TO ANY PARTY FOR DIRECT,
 
-INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE 
 
 USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF AUTHORS HAVE
 
@@ -43,17 +43,14 @@ MODIFICATIONS.-->
 <html>
 <body>
 <?php
-class Input{
-  public function getInput(){
-    return $_GET['UserData'] ;
-  }
-}
+$script = "/tmp/tainted.php";
+exec($script, $result, $return);
 
-$temp = new Input();
-$tainted =  $temp->getInput();
+$tainted = $result[0];
 
 $tainted = addslashes($tainted);
 
+//flaw
 echo "<div ". $tainted ."= bob />" ;
 ?>
 <h1>Hello World!</h1>
