@@ -239,6 +239,33 @@ const detectXss = (filePath) => {
               };
               source.name = 'fread';
               report();
+            } else if (ast.right.what.name === 'file_get_contents') {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
+              };
+              source.name = 'file_get_contents';
+              report();
+            } else if (ast.right.what.name === 'file') {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
+              };
+              source.name = 'file';
+              report();
+            } else if (ast.right.what.name === 'stream_get_contents') {
+              source.location = {
+                startLine: ast.right.loc.start.line,
+                startColumn: ast.right.loc.start.column,
+                endLine: ast.right.loc.end.line,
+                endColumn: ast.right.loc.end.column,
+              };
+              source.name = 'stream_get_contents';
+              report();
             }
             if (ast.right.arguments.length > 0) {
               //   return;
@@ -666,5 +693,5 @@ exports.detectXss = detectXss;
 // module.exports = detectXss;
 
 detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__object-indexArray__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
+  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__proc_open__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
 );
