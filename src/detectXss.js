@@ -20,17 +20,19 @@ const detectXss = (filePath) => {
     };
 
     const report = () => {
-      const result = {
-        source: source.name,
-        sourceLocation: source.location,
-        sink: sink.name,
-        sinkLocation: sink.location,
-      };
-      console.log(result.source);
-      console.log(result.sourceLocation);
-      console.log(result.sink);
-      console.log(result.sinkLocation);
-      results.push(result);
+      if (sink.name !== '') {
+        const result = {
+          source: source.name,
+          sourceLocation: source.location,
+          sink: sink.name,
+          sinkLocation: sink.location,
+        };
+        console.log(`Source:${result.source}`);
+        console.log(result.sourceLocation);
+        console.log(`Sink:${result.sink}`);
+        console.log(result.sinkLocation);
+        results.push(result);
+      }
       return;
     };
 
@@ -203,7 +205,11 @@ const detectXss = (filePath) => {
               }
             }
           } else if (ast.right.kind === 'call') {
-            if (ast.right.what.name === 'shell_exec') {
+            if (ast.right.what.name === 'htmlspecialchars') {
+              sink.name = '';
+              console.log(sink);
+              return;
+            } else if (ast.right.what.name === 'shell_exec') {
               source.location = {
                 startLine: ast.right.loc.start.line,
                 startColumn: ast.right.loc.start.column,
@@ -530,7 +536,7 @@ const detectXss = (filePath) => {
       }
     };
 
-    const judgeXss = ({ scope, echoVariables }) => {
+    const judgeXss = ({ scope, echoVariables, sinkName }) => {
       echoVariables.forEach((echoVariable) => {
         let echo = echoVariable;
         while (echo.kind !== 'echo' && echo.kind !== 'call') {
@@ -543,7 +549,7 @@ const detectXss = (filePath) => {
             endLine: echo.loc.end.line,
             endColumn: echo.loc.end.column,
           },
-          name: echoVariable.name,
+          name: sinkName ? sinkName : 'echo',
         };
         const minimumScope = findScope({ ast: echoVariable, scope });
         let nowScope = minimumScope;
@@ -601,7 +607,7 @@ const detectXss = (filePath) => {
         }
       }
       if (echoVariables.length > 0) {
-        judgeXss({ ast, scope, echoVariables });
+        judgeXss({ ast, scope, echoVariables, sinkName: 'echo' });
       } else {
         console.debug('No echo variable');
       }
@@ -618,7 +624,12 @@ const detectXss = (filePath) => {
         }
       }
       if (printVariables.length > 0) {
-        judgeXss({ ast, scope, echoVariables: printVariables });
+        judgeXss({
+          ast,
+          scope,
+          echoVariables: printVariables,
+          sinkName: 'print',
+        });
       } else {
         console.debug('No print variable');
       }
@@ -692,6 +703,4 @@ const detectXss = (filePath) => {
 exports.detectXss = detectXss;
 // module.exports = detectXss;
 
-detectXss(
-  '/Users/ryosuke/project/php_and_html_parser/sample/CWE_79__proc_open__func_addslashes__Unsafe_use_untrusted_data-attribute_Name.php'
-);
+detectXss('/home/ryosuke/project/php_and_html_parser/sample/easy.php');
